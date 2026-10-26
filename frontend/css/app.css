@@ -1,0 +1,185 @@
+/* Theme-aware custom styles. Tabler/Bootstrap handles the base theme. */
+:root {
+  color-scheme: dark;
+  --dashboard-bg: #151922;
+  --dashboard-surface: #1d2330;
+  --dashboard-border: #30394a;
+  --dashboard-text-muted: #9aa6b8;
+}
+html[data-bs-theme="dark"] {
+  color-scheme: dark;
+}
+html[data-bs-theme="dark"] body {
+  background: var(--dashboard-bg);
+  color: #e6eaf2;
+}
+html[data-bs-theme="dark"] .navbar {
+  background: #1b202b;
+  border-bottom-color: var(--dashboard-border);
+}
+html[data-bs-theme="dark"] .card,
+html[data-bs-theme="dark"] .list-group-item {
+  background: var(--dashboard-surface);
+  border-color: var(--dashboard-border);
+  color: #e6eaf2;
+}
+html[data-bs-theme="dark"] .metric-value,
+html[data-bs-theme="dark"] .service-name,
+html[data-bs-theme="dark"] .model-name {
+  color: #f2f5fa;
+}
+html[data-bs-theme="dark"] .text-secondary,
+html[data-bs-theme="dark"] .service-meta,
+html[data-bs-theme="dark"] .model-meta,
+html[data-bs-theme="dark"] .empty-state {
+  color: var(--dashboard-text-muted) !important;
+}
+html[data-bs-theme="dark"] .metric-blue { color: #79b8ff; background: #20334d; }
+html[data-bs-theme="dark"] .metric-purple { color: #c5a4ff; background: #322847; }
+html[data-bs-theme="dark"] .metric-green { color: #7ce3a0; background: #1e3a2b; }
+html[data-bs-theme="dark"] .metric-orange { color: #ffb36b; background: #402d20; }
+html[data-bs-theme="dark"] .brand-mark {
+  background: #206bc4;
+  color: #fff;
+}
+html[data-bs-theme="dark"] .avatar.bg-blue-lt {
+  color: #91c4ff !important;
+  background: #20334d !important;
+}
+html[data-bs-theme="dark"] .badge.bg-green-lt {
+  color: #7ce3a0 !important;
+  background: #1e3a2b !important;
+}
+html[data-bs-theme="dark"] .badge.bg-secondary-lt {
+  color: #c3cad5 !important;
+  background: #343c4b !important;
+}
+html[data-bs-theme="dark"] .badge.bg-blue-lt {
+  color: #91c4ff !important;
+  background: #20334d !important;
+}
+html[data-bs-theme="dark"] .btn-outline-secondary {
+  color: #cbd4e1;
+  border-color: #465164;
+}
+html[data-bs-theme="dark"] .btn-outline-secondary:hover {
+  color: #fff;
+  background: #30394a;
+}
+html[data-bs-theme="dark"] .btn-outline-warning {
+  color: #ffc36b;
+  border-color: #8d682c;
+}
+html[data-bs-theme="dark"] .btn-outline-danger {
+  color: #ff9292;
+  border-color: #85404a;
+}
+html[data-bs-theme="dark"] .alert-warning {
+  color: #ffe0a3;
+  background: #3a301d;
+  border-color: #65502b;
+}
+html[data-bs-theme="dark"] .footer {
+  color: var(--dashboard-text-muted);
+}
+html[data-bs-theme="light"] {
+  color-scheme: light;
+}
+html[data-bs-theme="light"] body {
+  background: #f5f7fb;
+}
+html[data-bs-theme="light"] .navbar {
+  background: #fff;
+  border-bottom: 1px solid #e6e8ef;
+}
+html[data-bs-theme="light"] .metric-value,
+html[data-bs-theme="light"] .service-name,
+html[data-bs-theme="light"] .model-name {
+  color: #182433;
+}
+.navbar-brand {
+  gap: .75rem;
+  font-weight: 700;
+  letter-spacing: -.02em;
+}
+.brand-mark {
+  display: inline-flex;
+  width: 34px;
+  height: 34px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: #206bc4;
+  color: #fff;
+  font-size: .82rem;
+  letter-spacing: -.04em;
+}
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  color: #9aa6b8;
+  font-size: .85rem;
+}
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #98a2b3;
+  flex-shrink: 0;
+}
+.status-dot.is-online { background: #2fb344; }
+.status-dot.is-offline { background: #d63939; }
+.metric-icon {
+  display: inline-flex;
+  width: 44px;
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  font-size: 1.35rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.metric-blue { color: #206bc4; background: #e8f2ff; }
+.metric-purple { color: #7c3aed; background: #f1eafe; }
+.metric-green { color: #2fb344; background: #e7f8eb; }
+.metric-orange { color: #f76707; background: #fff0e6; }
+.metric-value {
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+.service-name {
+  font-weight: 650;
+}
+.service-meta {
+  color: #9aa6b8;
+  font-size: .82rem;
+  overflow-wrap: anywhere;
+}
+.service-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+}
+.model-name {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.model-meta {
+  color: #9aa6b8;
+  font-size: .8rem;
+}
+.empty-state {
+  color: #9aa6b8;
+  font-size: .9rem;
+  padding: .75rem 0;
+}
+.card-title { font-weight: 700; }
+@media (max-width: 767px) {
+  .navbar-brand span:last-child { font-size: .95rem; }
+  .status-chip { display: none; }
+  .page-header .btn { font-size: .8rem; }
+  .service-row { align-items: flex-start !important; flex-direction: column; }
+}

@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en" data-bs-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Local AI Control Center</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/core@1.7.1/dist/css/tabler.min.css">
+  <link rel="stylesheet" href="./css/app.css">
+</head>
+<body>
+  <div class="page">
+    <header class="navbar navbar-expand-md d-print-none">
+      <div class="container-xl">
+        <h1 class="navbar-brand navbar-brand-autodark">
+          <span class="brand-mark">AI</span>
+          <span>Local AI Control Center</span>
+        </h1>
+        <div class="navbar-nav flex-row order-md-last align-items-center gap-3">
+          <span class="status-chip"><span class="status-dot" id="connection-dot"></span><span id="connection-label">Connecting…</span></span>
+          <button class="btn btn-outline-secondary btn-sm" id="theme-button" type="button" aria-label="Switch to light theme" title="Switch theme">☀ Light</button>
+          <button class="btn btn-outline-secondary btn-sm" id="refresh-button" type="button">↻ Refresh</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="page-wrapper">
+      <div class="page-header d-print-none">
+        <div class="container-xl">
+          <div class="row g-2 align-items-center">
+            <div class="col">
+              <div class="page-pretitle">LOCAL MACHINE</div>
+              <h2 class="page-title">Dashboard</h2>
+              <div class="text-secondary mt-1">Manage your local AI services without opening a terminal.</div>
+            </div>
+            <div class="col-auto ms-auto">
+              <button class="btn btn-primary" id="docker-start-button" type="button">▶ Start Docker Desktop</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="page-body">
+        <div class="container-xl">
+          <div class="alert alert-warning d-none" id="global-error" role="alert"></div>
+
+          <div class="row row-deck row-cards mb-3">
+            <div class="col-sm-6 col-lg-3">
+              <div class="card">
+                <div class="card-body">
+                  <div class="d-flex align-items-center">
+                    <span class="metric-icon metric-blue">▦</span>
+                    <div class="ms-3">
+                      <div class="text-secondary">Docker Engine</div>
+                      <div class="metric-value" id="docker-status">Checking…</div>
+                    </div>
+                  </div>
+                  <div class="mt-3 text-secondary small" id="docker-detail">Checking Docker availability</div>
+                </div>
+              </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+              <div class="card">
+                <div class="card-body">
+                  <div class="d-flex align-items-center">
+                    <span class="metric-icon metric-purple">◈</span>
+                    <div class="ms-3">
+                      <div class="text-secondary">Ollama</div>
+                      <div class="metric-value" id="ollama-status">Checking…</div>
+                    </div>
+                  </div>
+                  <div class="mt-3 text-secondary small" id="ollama-detail">Model runtime</div>
+                </div>
+              </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+              <div class="card">
+                <div class="card-body">
+                  <div class="d-flex align-items-center">
+                    <span class="metric-icon metric-green">▣</span>
+                    <div class="ms-3">
+                      <div class="text-secondary">Open WebUI</div>
+                      <div class="metric-value" id="webui-status">Checking…</div>
+                    </div>
+                  </div>
+                  <div class="mt-3 text-secondary small"><a href="http://127.0.0.1:3000" target="_blank" rel="noreferrer">Open WebUI ↗</a></div>
+                </div>
+              </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+              <div class="card">
+                <div class="card-body">
+                  <div class="d-flex align-items-center">
+                    <span class="metric-icon metric-orange">♫</span>
+                    <div class="ms-3">
+                      <div class="text-secondary">Text-to-Speech</div>
+                      <div class="metric-value">Not configured</div>
+                    </div>
+                  </div>
+                  <div class="mt-3 text-secondary small">TTS integration can be added later</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row row-deck row-cards">
+            <div class="col-lg-7">
+              <div class="card">
+                <div class="card-header">
+                  <div>
+                    <h3 class="card-title">Services</h3>
+                    <div class="text-secondary small">Start, stop, or restart configured containers.</div>
+                  </div>
+                </div>
+                <div class="list-group list-group-flush" id="services-list">
+                  <div class="list-group-item text-secondary">Loading service status…</div>
+                </div>
+              </div>
+
+              <div class="card mt-3">
+                <div class="card-header">
+                  <div>
+                    <h3 class="card-title">GPU</h3>
+                    <div class="text-secondary small">NVIDIA GPU status from nvidia-smi</div>
+                  </div>
+                </div>
+                <div class="card-body" id="gpu-panel">
+                  <div class="text-secondary">Checking GPU…</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-lg-5">
+              <div class="card">
+                <div class="card-header">
+                  <div>
+                    <h3 class="card-title">Downloaded Models</h3>
+                    <div class="text-secondary small">Models available in your Ollama library.</div>
+                  </div>
+                  <span class="badge bg-blue-lt" id="model-count">—</span>
+                </div>
+                <div class="card-body p-0">
+                  <div class="list-group list-group-flush" id="models-list">
+                    <div class="list-group-item text-secondary">Loading models…</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card mt-3">
+                <div class="card-header">
+                  <div>
+                    <h3 class="card-title">Currently Loaded</h3>
+                    <div class="text-secondary small">Models currently resident in memory.</div>
+                  </div>
+                </div>
+                <div class="card-body" id="loaded-models">
+                  <div class="text-secondary">Checking loaded models…</div>
+                </div>
+              </div>
+
+              <div class="card mt-3">
+                <div class="card-header"><h3 class="card-title">Quick links</h3></div>
+                <div class="card-body d-flex flex-wrap gap-2">
+                  <a class="btn btn-outline-primary" href="http://127.0.0.1:3000" target="_blank" rel="noreferrer">Open WebUI ↗</a>
+                  <button class="btn btn-outline-secondary" id="refresh-models-button" type="button">Refresh models</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <footer class="footer footer-transparent d-print-none mt-4">
+            <div class="container-xl">
+              <div class="text-secondary small">Local AI Control Center <span class="mx-1">·</span> Runs on your own machine</div>
+            </div>
+          </footer>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="./js/app.js"></script>
+</body>
+</html>
