@@ -1,0 +1,10 @@
+{
+  "ollama": {
+    "displayName": "Ollama",
+    "containerName": "ollama"
+  },
+  "openWebUI": {
+    "displayName": "Open WebUI",
+    "containerName": "open-webui"
+  }
+}

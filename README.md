@@ -103,4 +103,4 @@ Keep the implementation lightweight, maintainable, and easy to configure.
 
 ## License
 
-To be determined before the first public release.
+MIT
