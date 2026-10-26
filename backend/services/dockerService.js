@@ -9,7 +9,7 @@ async function getDockerInfo() {
     const result = await docker(['info', '--format', '{{.ServerVersion}}'], { timeout: 8000 });
     return { available: true, serverVersion: result.stdout || null };
   } catch (error) {
-    return { available: false, serverVersion: null, error: error.message };
+    return { available: false, serverVersion: null };
   }
 }
 

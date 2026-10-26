@@ -7,6 +7,9 @@
     { id: "openWebUI", name: "Open WebUI", description: "Browser-based chat interface", port: "3000" }
   ];
 
+  // Get backend URL from window config or default
+  var BACKEND_URL = window.BACKEND_URL || "http://127.0.0.1:8787";
+
   function byId(id) {
     return document.getElementById(id);
   }
@@ -68,8 +71,7 @@
   }
 
   async function api(path, options) {
-    var backend = "http://127.0.0.1:8787";
-    var response = await fetch(backend+path, Object.assign({
+    var response = await fetch(BACKEND_URL + path, Object.assign({
       headers: {
         "Content-Type": "application/json"
       }
@@ -116,18 +118,18 @@
   }
 
   function findContainer(containers, name) {
-    var expected = name.replace(/^\//, "");
+    var expected = name.replace(/^\\//, "");
 
     return (containers || []).find(function (item) {
       var names = item.names || item.Names || item.Name || "";
 
       if (Array.isArray(names)) {
         return names.some(function (itemName) {
-          return itemName.replace(/^\//, "") === expected;
+          return itemName.replace(/^\\//, "") === expected;
         });
       }
 
-      return String(names).replace(/^\//, "") === expected;
+      return String(names).replace(/^\\//, "") === expected;
     });
   }
 
@@ -145,9 +147,9 @@
       var containerName = service.id === "openWebUI" ? "open-webui" : "ollama";
       var detail = container ? (container.status || container.Status || container.state || container.State || "Container found") : ("Container not found: " + containerName);
       var actions = running
-        ? '<button class="btn btn-sm btn-outline-warning" data-service="' + service.id + '" data-action="restart">Restart</button>' +
-          '<button class="btn btn-sm btn-outline-danger" data-service="' + service.id + '" data-action="stop">Stop</button>'
-        : '<button class="btn btn-sm btn-primary" data-service="' + service.id + '" data-action="start">Start</button>';
+        ? '<button class="btn btn-sm btn-outline-warning" data-service="' + escapeHtml(service.id) + '" data-action="restart">Restart</button>' +
+          '<button class="btn btn-sm btn-outline-danger" data-service="' + escapeHtml(service.id) + '" data-action="stop">Stop</button>'
+        : '<button class="btn btn-sm btn-primary" data-service="' + escapeHtml(service.id) + '" data-action="start">Start</button>';
       return '<div class="list-group-item">' +
         '<div class="d-flex justify-content-between gap-3 service-row">' +
           '<div class="d-flex align-items-start gap-3">' +
@@ -299,7 +301,7 @@
 
       var failures = results.filter(function (item) { return item.status === "rejected"; });
       if (!hasApi) {
-        setError("The dashboard backend could not be reached. Start the Node.js server, then open this page from http://127.0.0.1:8787 (not by opening index.html directly).");
+        setError("The dashboard backend could not be reached. Start the Node.js server, then open this page from http://127.0.0.1:8787 (or your configured frontend port).");
       } else if (failures.length) {
         setError("Some status checks failed. Docker, Ollama, or NVIDIA tools may be unavailable; check the affected panel below.");
       } else {
@@ -315,6 +317,12 @@
   }
 
   async function runServiceAction(serviceId, action, button) {
+    // Validate inputs
+    if (!/^[a-zA-Z0-9_-]+$/.test(serviceId) || !/^[a-z]+$/.test(action)) {
+      setError("Invalid service or action");
+      return;
+    }
+
     button.disabled = true;
     var oldText = button.textContent;
     button.textContent = "Working…";
@@ -327,7 +335,7 @@
       await new Promise(function (resolve) { window.setTimeout(resolve, 800); });
       await refreshAll();
     } catch (error) {
-      setError("Could not " + action + " " + serviceId + ": " + (error.message || "Unknown error"));
+      setError("Could not " + action + " " + escapeHtml(serviceId) + ": " + (error.message || "Unknown error"));
     } finally {
       button.disabled = false;
       button.textContent = oldText;
@@ -359,6 +367,7 @@
     }
   });
 
+  initializeTheme();
   refreshAll();
   window.setInterval(refreshAll, 5000);
 }());

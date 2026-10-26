@@ -13,7 +13,37 @@ const { getGpuInfo } = require('../services/systemService');
 
 const router = express.Router();
 const configPath = path.join(__dirname, '../config/services.json');
-const serviceConfig = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+
+// Validate configuration schema
+function validateServiceConfig(config) {
+  if (!config || typeof config !== 'object') {
+    throw new Error('Invalid configuration: must be an object');
+  }
+  
+  for (const [key, service] of Object.entries(config)) {
+    if (!service.displayName || typeof service.displayName !== 'string') {
+      throw new Error(`Invalid service "${key}": missing or invalid displayName`);
+    }
+    if (!service.containerName || typeof service.containerName !== 'string') {
+      throw new Error(`Invalid service "${key}": missing or invalid containerName`);
+    }
+    // Validate containerName contains only safe characters
+    if (!/^[a-zA-Z0-9_-]+$/.test(service.containerName)) {
+      throw new Error(`Invalid service "${key}": containerName contains unsafe characters`);
+    }
+  }
+  
+  return config;
+}
+
+let serviceConfig;
+try {
+  const rawConfig = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+  serviceConfig = validateServiceConfig(rawConfig);
+} catch (error) {
+  console.error('Failed to load configuration:', error.message);
+  process.exit(1);
+}
 
 function getConfiguredContainer(serviceId) {
   const service = serviceConfig[serviceId];
@@ -23,6 +53,17 @@ function getConfiguredContainer(serviceId) {
     throw error;
   }
   return service;
+}
+
+// Validate container action
+function validateAction(action) {
+  const allowed = ['start', 'stop', 'restart'];
+  if (!allowed.includes(action)) {
+    const error = new Error('Unsupported container action');
+    error.status = 400;
+    throw error;
+  }
+  return action;
 }
 
 router.get('/health', (req, res) => {
@@ -41,6 +82,7 @@ router.post('/docker/start', async (req, res, next) => {
   try {
     const { spawn } = require('node:child_process');
     const { existsSync } = require('node:fs');
+    
     const candidates = [
       process.env.DOCKER_DESKTOP_EXE,
       'C:\\Program Files\\Docker\\Docker\\Docker Desktop.exe',
@@ -49,9 +91,9 @@ router.post('/docker/start', async (req, res, next) => {
 
     const executable = candidates.find(existsSync);
     if (!executable) {
-      return res.status(500).json({
-        error: 'Docker Desktop executable not found. Set DOCKER_DESKTOP_EXE in your environment.'
-      });
+      const error = new Error('Docker Desktop not found');
+      error.status = 500;
+      throw error;
     }
 
     const child = spawn(executable, [], { detached: true, stdio: 'ignore', windowsHide: true });
@@ -76,9 +118,20 @@ router.get('/containers', async (req, res, next) => {
 
 router.post('/services/:serviceId/:action', async (req, res, next) => {
   try {
-    const service = getConfiguredContainer(req.params.serviceId);
-    const result = await containerAction(service.containerName, req.params.action);
-    res.json({ ok: true, serviceId: req.params.serviceId, displayName: service.displayName, ...result });
+    const serviceId = req.params.serviceId;
+    const action = req.params.action;
+    
+    // Validate inputs
+    if (!/^[a-zA-Z0-9_-]+$/.test(serviceId)) {
+      const error = new Error('Invalid service ID');
+      error.status = 400;
+      throw error;
+    }
+    
+    validateAction(action);
+    const service = getConfiguredContainer(serviceId);
+    const result = await containerAction(service.containerName, action);
+    res.json({ ok: true, serviceId, displayName: service.displayName, ...result });
   } catch (error) {
     next(error);
   }
@@ -86,7 +139,15 @@ router.post('/services/:serviceId/:action', async (req, res, next) => {
 
 router.get('/services/:serviceId/stats', async (req, res, next) => {
   try {
-    const service = getConfiguredContainer(req.params.serviceId);
+    const serviceId = req.params.serviceId;
+    
+    if (!/^[a-zA-Z0-9_-]+$/.test(serviceId)) {
+      const error = new Error('Invalid service ID');
+      error.status = 400;
+      throw error;
+    }
+    
+    const service = getConfiguredContainer(serviceId);
     res.json(await containerStats(service.containerName));
   } catch (error) {
     next(error);
