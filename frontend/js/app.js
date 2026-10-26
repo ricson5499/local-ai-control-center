@@ -118,18 +118,18 @@
   }
 
   function findContainer(containers, name) {
-    var expected = name.replace(/^\\//, "");
+    var expected = name.replace(/^\\/, "");
 
     return (containers || []).find(function (item) {
       var names = item.names || item.Names || item.Name || "";
 
       if (Array.isArray(names)) {
         return names.some(function (itemName) {
-          return itemName.replace(/^\\//, "") === expected;
+          return itemName.replace(/^\\/, "") === expected;
         });
       }
 
-      return String(names).replace(/^\\//, "") === expected;
+      return String(names).replace(/^\\/, "") === expected;
     });
   }
 
@@ -199,7 +199,7 @@
   }
 
   function renderGpu(payload) {
-    var gpu = payload && (payload.gpu || payload);
+    var gpu = (payload.gpus || payload);
     if (!gpu || payload.available === false || payload.error) {
       byId("gpu-panel").innerHTML = '<div class="empty-state">GPU information is unavailable. Check that NVIDIA drivers and nvidia-smi are installed.</div>';
       return;
@@ -207,12 +207,12 @@
     if (Array.isArray(gpu) && gpu.length) {
       byId("gpu-panel").innerHTML = gpu.map(function (item) {
         var name = item.name || item.gpu_name || "NVIDIA GPU";
-        var utilization = item.utilization_gpu || item.utilization || item.gpu_utilization;
-        var memoryUsed = item.memory_used || item.memoryUsed;
-        var memoryTotal = item.memory_total || item.memoryTotal;
+        var utilization = item.utilization_gpu || item.utilization || item.gpu_utilization || item.utilizationPercent;
+        var memoryUsed = item.memory_used || item.memoryUsed || item.memoryUsedMiB;
+        var memoryTotal = item.memory_total || item.memoryTotal || item.memoryTotalMiB;
         return '<div class="mb-2"><div class="fw-bold">' + escapeHtml(name) + '</div>' +
-          '<div class="text-secondary small">GPU utilization: ' + escapeHtml(utilization || "—") +
-          ' · Memory: ' + escapeHtml(memoryUsed || "—") + ' / ' + escapeHtml(memoryTotal || "—") + '</div></div>';
+          '<div class="text-secondary small">GPU utilization: ' + escapeHtml(utilization + "%" || "—") +
+          ' · Memory: ' + escapeHtml(memoryUsed+"MB" || "—") + ' / ' + escapeHtml(memoryTotal+"MB" || "—") + '</div></div>';
       }).join("");
       return;
     }
