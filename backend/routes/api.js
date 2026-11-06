@@ -10,6 +10,7 @@ const {
 } = require('../services/dockerService');
 const { listModels, listLoadedModels } = require('../services/ollamaService');
 const { getGpuInfo } = require('../services/systemService');
+const { runCommand } = require('../services/commandRunner');
 
 const router = express.Router();
 const configPath = path.join(__dirname, '../config/services.json');
@@ -165,6 +166,27 @@ router.get('/ollama/models', async (req, res, next) => {
 router.get('/ollama/loaded', async (req, res, next) => {
   try {
     res.json({ models: await listLoadedModels() });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/ollama/run', async (req, res, next) => {
+  try {
+    const command = req.body.command;
+    if (!command || typeof command !== 'string') {
+      const error = new Error('Invalid command');
+      error.status = 400;
+      throw error;
+    }
+    if (!/^[a-zA-Z0-9\s:._-]+$/.test(command)) {
+      const error = new Error('Command contains invalid characters');
+      error.status = 400;
+      throw error;
+    }
+    const args = command.split(/\s+/);
+    const result = await runCommand('ollama', args, { timeout: 60000 });
+    res.json({ ok: true, output: result.stdout || result.stderr });
   } catch (error) {
     next(error);
   }

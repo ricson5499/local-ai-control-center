@@ -9,6 +9,11 @@
 
   // Get backend URL from window config or default
   var BACKEND_URL = window.BACKEND_URL || "http://127.0.0.1:8787";
+  var API_TOKEN = window.API_TOKEN || localStorage.getItem('api-token') || '';
+
+  if (!API_TOKEN) {
+    setError('API token not configured. Please set window.API_TOKEN or store it in localStorage.');
+  }
 
   function byId(id) {
     return document.getElementById(id);
@@ -73,7 +78,8 @@
   async function api(path, options) {
     var response = await fetch(BACKEND_URL + path, Object.assign({
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + API_TOKEN
       }
     }, options || {}));
     var payload;
@@ -350,6 +356,33 @@
 
   byId("refresh-button").addEventListener("click", refreshAll);
   byId("refresh-models-button").addEventListener("click", refreshAll);
+  byId("ollama-run-button").addEventListener("click", async function () {
+    var command = byId("ollama-command").value.trim();
+    if (!command) {
+      setError("Please enter an Ollama command");
+      return;
+    }
+    var button = this;
+    var output = byId("ollama-output");
+    button.disabled = true;
+    var oldText = button.textContent;
+    button.textContent = "Running...";
+    output.style.display = "block";
+    output.textContent = "Executing: ollama " + command + "\n\n";
+    try {
+      var result = await api("/api/ollama/run", {
+        method: "POST",
+        body: JSON.stringify({ command: command })
+      });
+      output.textContent += (result.output || "");
+      setError("");
+    } catch (error) {
+      output.textContent += "Error: " + (error.message || "Unknown error");
+    } finally {
+      button.disabled = false;
+      button.textContent = oldText;
+    }
+  });
   byId("docker-start-button").addEventListener("click", async function () {
     var button = this;
     button.disabled = true;

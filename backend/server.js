@@ -6,6 +6,12 @@ const app = express();
 const HOST = process.env.HOST || '127.0.0.1';
 const PORT = Number(process.env.PORT || 8787);
 const FRONTEND_PORT = process.env.FRONTEND_PORT || 4001;
+const API_TOKEN = process.env.API_TOKEN;
+
+if (!API_TOKEN) {
+  console.error('ERROR: API_TOKEN environment variable is not set. Please configure it in .env file.');
+  process.exit(1);
+}
 
 app.disable('x-powered-by');
 app.use(cors({origin: `http://127.0.0.1:${FRONTEND_PORT}`}));
@@ -17,6 +23,17 @@ app.use((req, res, next) => {
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('X-XSS-Protection', '1; mode=block');
   res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  next();
+});
+
+// Bearer Token authentication middleware
+app.use((req, res, next) => {
+  const authHeader = req.headers.authorization || '';
+  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
+  
+  if (!token || token !== API_TOKEN) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
   next();
 });
 
