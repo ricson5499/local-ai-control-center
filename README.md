@@ -85,23 +85,17 @@ Some features may require additional configuration.
 
 4. **Start the backend server**
    ```bash
-   npm start
+   npm run dev
    ```
    The backend will listen on `http://127.0.0.1:8787`
 
-5. **Open the frontend**
-   - Open your browser and navigate to `http://127.0.0.1:8787`
-   - Configure the API token in your browser:
-     ```javascript
-     localStorage.setItem('api-token', 'your-secure-token-here');
-     location.reload();
-     ```
+
 
 ### Quick Start
 
 1. Ensure Docker Desktop is running
-2. Start the backend: `npm start`
-3. Open `http://127.0.0.1:8787` in your browser
+2. Start the backend: `npm run dev`
+3. Open frontend in your browser (using live server)
 4. Set your API token in the browser console
 5. Use the dashboard to manage your services
 
@@ -235,7 +229,7 @@ Authorization: Bearer your-api-token
 ### Example Request
 
 ```bash
-curl -H "Authorization: Bearer your-api-token" http://127.0.0.1:8787/api/health
+curl -H "Authorization: Bearer your-api-token" http://127.0.0.1:8787/
 ```
 
 ## Contributing

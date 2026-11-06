@@ -7,16 +7,42 @@
     { id: "openWebUI", name: "Open WebUI", description: "Browser-based chat interface", port: "3000" }
   ];
 
-  // Get backend URL from window config or default
   var BACKEND_URL = window.BACKEND_URL || "http://127.0.0.1:8787";
   var API_TOKEN = window.API_TOKEN || localStorage.getItem('api-token') || '';
 
-  if (!API_TOKEN) {
-    setError('API token not configured. Please set window.API_TOKEN or store it in localStorage.');
-  }
-
   function byId(id) {
     return document.getElementById(id);
+  }
+
+  function initializeTokenSetup() {
+    if (!API_TOKEN) {
+      byId('token-setup-panel').style.display = 'block';
+      byId('token-setup-form').style.display = 'block';
+      byId('main-header').style.display = 'none';
+      byId('main-content').style.display = 'none';
+      
+      byId('token-submit-button').addEventListener('click', function () {
+        var token = byId('token-input').value.trim();
+        if (!token) {
+          alert('Please enter a token');
+          return;
+        }
+        localStorage.setItem('api-token', token);
+        location.reload();
+      });
+      
+      byId('token-input').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+          byId('token-submit-button').click();
+        }
+      });
+      return false;
+    }
+    byId('token-setup-panel').style.display = 'none';
+    byId('token-setup-form').style.display = 'none';
+    byId('main-header').style.display = 'block';
+    byId('main-content').style.display = 'block';
+    return true;
   }
 
   function applyTheme(theme) {
@@ -112,13 +138,20 @@
 
   function statusText(container) {
     if (!container) return "Unknown";
-    if (container.State) {
-      return container.State.charAt(0).toUpperCase() + container.State.slice(1);
+    var state = container.State || container.state || "";
+    var status = container.Status || container.status || "";
+    
+    if (state) {
+      var stateStr = String(state).toLowerCase();
+      if (stateStr === "running") return "Running";
+      if (stateStr === "exited") return "Exited";
+      return state.charAt(0).toUpperCase() + state.slice(1);
     }
-    if (container.Status) {
-      if (/^Up/i.test(container.Status)) return "Running";
-      if (/Exited|Created|Restarting/i.test(container.Status)) return container.Status.split(" ")[0];
-      return container.Status;
+    
+    if (status) {
+      if (/^Up/i.test(status)) return "Running";
+      if (/Exited|Created|Restarting/i.test(status)) return status.split(" ")[0];
+      return status;
     }
     return "Unknown";
   }
@@ -148,15 +181,16 @@
     var html = serviceDefinitions.map(function (service) {
       var container = findContainer(containers, service.id === "openWebUI" ? "open-webui" : "ollama");
       var status = statusText(container);
-      var running = status.toLowerCase() === "running" || (container && /^Up/i.test(container.Status || ""));
+      var running = status === "Running";
       var badgeClass = running ? "bg-green-lt" : "bg-secondary-lt";
       var containerName = service.id === "openWebUI" ? "open-webui" : "ollama";
       var detail = container ? (container.status || container.Status || container.state || container.State || "Container found") : ("Container not found: " + containerName);
       var actions = running
-        ? '<button class="btn btn-sm btn-outline-warning" data-service="' + escapeHtml(service.id) + '" data-action="restart">Restart</button>' +
-          '<button class="btn btn-sm btn-outline-danger" data-service="' + escapeHtml(service.id) + '" data-action="stop">Stop</button>'
-        : '<button class="btn btn-sm btn-primary" data-service="' + escapeHtml(service.id) + '" data-action="start">Start</button>';
-      return '<div class="list-group-item">' +
+        ? '<button class="btn btn-sm btn-outline-warning" data-service="' + escapeHtml(service.id) + '" data-action="restart">⟳ Restart</button>' +
+          '<button class="btn btn-sm btn-outline-danger" data-service="' + escapeHtml(service.id) + '" data-action="stop">⏹ Stop</button>'
+        : '<button class="btn btn-sm btn-success" data-service="' + escapeHtml(service.id) + '" data-action="start">▶ Start</button>';
+      var bgClass = running ? " bg-success-lt" : "";
+      return '<div class="list-group-item' + bgClass + '">' +
         '<div class="d-flex justify-content-between gap-3 service-row">' +
           '<div class="d-flex align-items-start gap-3">' +
             '<span class="avatar avatar-sm bg-blue-lt">' + (service.id === "ollama" ? "O" : "W") + '</span>' +
@@ -254,6 +288,17 @@
       byId("docker-detail").textContent = docker && (docker.message || docker.detail)
         ? (docker.message || docker.detail)
         : (dockerRunning ? "Docker Engine is reachable" : "Docker Engine is not reachable");
+
+      var dockerButton = byId("docker-button");
+      if (dockerRunning) {
+        dockerButton.textContent = "⏹ Stop Docker Desktop";
+        dockerButton.className = "btn btn-outline-danger";
+        dockerButton.setAttribute("data-docker-action", "stop");
+      } else {
+        dockerButton.textContent = "▶ Start Docker Desktop";
+        dockerButton.className = "btn btn-primary";
+        dockerButton.setAttribute("data-docker-action", "start");
+      }
 
       
       if (results[2].status === "fulfilled") {
@@ -383,17 +428,24 @@
       button.textContent = oldText;
     }
   });
-  byId("docker-start-button").addEventListener("click", async function () {
+  byId("docker-button").addEventListener("click", async function () {
     var button = this;
+    var action = button.getAttribute("data-docker-action") || "start";
     button.disabled = true;
     var oldText = button.textContent;
-    button.textContent = "Starting…";
+    button.textContent = "Working…";
     try {
-      await api("/api/docker/start", { method: "POST", body: JSON.stringify({}) });
-      setError("");
-      window.setTimeout(refreshAll, 3000);
+      if (action === "start") {
+        await api("/api/docker/start", { method: "POST", body: JSON.stringify({}) });
+        setError("");
+        window.setTimeout(refreshAll, 3000);
+      } else if (action === "stop") {
+        await api("/api/docker/stop", { method: "POST", body: JSON.stringify({}) });
+        setError("");
+        window.setTimeout(refreshAll, 1000);
+      }
     } catch (error) {
-      setError("Could not start Docker Desktop: " + (error.message || "Unknown error"));
+      setError("Could not " + action + " Docker Desktop: " + (error.message || "Unknown error"));
     } finally {
       button.disabled = false;
       button.textContent = oldText;
@@ -401,6 +453,8 @@
   });
 
   initializeTheme();
-  refreshAll();
-  window.setInterval(refreshAll, 5000);
+  if (initializeTokenSetup()) {
+    refreshAll();
+    window.setInterval(refreshAll, 5000);
+  }
 }());

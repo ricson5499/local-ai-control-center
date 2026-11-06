@@ -105,6 +105,20 @@ router.post('/docker/start', async (req, res, next) => {
   }
 });
 
+router.post('/docker/stop', async (req, res, next) => {
+  try {
+    const { spawn } = require('node:child_process');
+    
+    const child = spawn('taskkill', ['/IM', 'Docker Desktop.exe', '/F'], { stdio: 'ignore', windowsHide: true });
+    
+    child.on('close', (code) => {
+      res.status(202).json({ ok: true, message: 'Docker Desktop stop requested.' });
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 router.get('/containers', async (req, res, next) => {
   try {
     const [containers, dockerStatus] = await Promise.all([

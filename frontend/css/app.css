@@ -58,6 +58,10 @@ html[data-bs-theme="dark"] .badge.bg-blue-lt {
   color: #91c4ff !important;
   background: #20334d !important;
 }
+html[data-bs-theme="dark"] .bg-success-lt {
+  background: #1e3a2b !important;
+  border-color: #2d5a3d !important;
+}
 html[data-bs-theme="dark"] .btn-outline-secondary {
   color: #cbd4e1;
   border-color: #465164;

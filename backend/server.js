@@ -28,6 +28,11 @@ app.use((req, res, next) => {
 
 // Bearer Token authentication middleware
 app.use((req, res, next) => {
+  // Skip authentication for health check
+  if (req.path === '/api/health') {
+    return next();
+  }
+  
   const authHeader = req.headers.authorization || '';
   const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
   
