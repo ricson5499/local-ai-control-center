@@ -9,7 +9,7 @@
   <title>Local AI Control Center</title>
   <script>
     window.BACKEND_URL = 'http://127.0.0.1:8787';
-    window.API_TOKEN = localStorage.getItem('api-token') || '';
+    document.documentElement.style.visibility = 'hidden';
   </script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/core@1.7.1/dist/css/tabler.min.css">
   <link rel="stylesheet" href="./css/app.css">
@@ -31,7 +31,7 @@
     </header>
 
     <div class="page-wrapper">
-      <div class="page-header d-print-none" id="token-setup-panel" style="display:none;">
+      <div class="page-header d-print-none hidden" id="token-setup-panel">
         <div class="container-xl">
           <div class="row g-2 align-items-center">
             <div class="col">
@@ -42,7 +42,7 @@
           </div>
         </div>
       </div>
-      <div class="page-header d-print-none" id="main-header">
+      <div class="page-header d-print-none hidden" id="main-header">
         <div class="container-xl">
           <div class="row g-2 align-items-center">
             <div class="col">
@@ -60,7 +60,7 @@
       <div class="page-body">
         <div class="container-xl">
           <div class="alert alert-warning d-none" id="global-error" role="alert"></div>
-          <div id="token-setup-form" style="display:none;">
+          <div id="token-setup-form">
             <div class="row justify-content-center">
               <div class="col-md-6">
                 <div class="card">
@@ -77,7 +77,7 @@
             </div>
           </div>
 
-          <div id="main-content">
+          <div id="main-content" class="hidden">
 
           <div class="row row-deck row-cards mb-3">
             <div class="col-sm-6 col-lg-3">

@@ -16,32 +16,20 @@
 
   function initializeTokenSetup() {
     if (!API_TOKEN) {
-      byId('token-setup-panel').style.display = 'block';
-      byId('token-setup-form').style.display = 'block';
-      byId('main-header').style.display = 'none';
-      byId('main-content').style.display = 'none';
-      
-      byId('token-submit-button').addEventListener('click', function () {
-        var token = byId('token-input').value.trim();
-        if (!token) {
-          alert('Please enter a token');
-          return;
-        }
-        localStorage.setItem('api-token', token);
-        location.reload();
-      });
-      
-      byId('token-input').addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') {
-          byId('token-submit-button').click();
-        }
-      });
+      byId('token-setup-panel').classList.remove('hidden');
+      byId('token-setup-form').classList.remove('hidden');
+      byId('main-header').classList.add('hidden');
+      byId('main-content').classList.add('hidden');
+      byId('refresh-button').classList.add('hidden');
+      document.documentElement.style.visibility = 'visible';
       return false;
     }
-    byId('token-setup-panel').style.display = 'none';
-    byId('token-setup-form').style.display = 'none';
-    byId('main-header').style.display = 'block';
-    byId('main-content').style.display = 'block';
+    byId('token-setup-panel').classList.add('hidden');
+    byId('token-setup-form').classList.add('hidden');
+    byId('main-header').classList.remove('hidden');
+    byId('main-content').classList.remove('hidden');
+    byId('refresh-button').classList.remove('hidden');
+    document.documentElement.style.visibility = 'visible';
     return true;
   }
 
@@ -216,7 +204,8 @@
       var name = model.name || model.model || "Unknown model";
       var size = model.size != null ? formatBytes(model.size) : "Size unknown";
       var modified = model.modified_at ? new Date(model.modified_at).toLocaleDateString() : "";
-      return '<div class="list-group-item"><div class="model-name">' + escapeHtml(name) + '</div>' +
+      return '<div class="list-group-item" style="cursor:pointer;" data-model="' + escapeHtml(name) + '" title="Click to load model">' +
+        '<div class="model-name">' + escapeHtml(name) + '</div>' +
         '<div class="model-meta">' + escapeHtml(size) + (modified ? " · Updated " + escapeHtml(modified) : "") + '</div></div>';
     }).join("");
   }
@@ -393,14 +382,35 @@
     }
   }
 
+  byId('token-submit-button').addEventListener('click', function () {
+    var token = byId('token-input').value.trim();
+    if (!token) {
+      alert('Please enter a token');
+      return;
+    }
+    localStorage.setItem('api-token', token);
+    location.reload();
+  });
+  
+  byId('token-input').addEventListener('keypress', function (e) {
+    if (e.key === 'Enter') {
+      byId('token-submit-button').click();
+    }
+  });
+
   byId("services-list").addEventListener("click", function (event) {
     var button = event.target.closest("button[data-service][data-action]");
     if (!button) return;
     runServiceAction(button.getAttribute("data-service"), button.getAttribute("data-action"), button);
   });
-
-  byId("refresh-button").addEventListener("click", refreshAll);
   byId("refresh-models-button").addEventListener("click", refreshAll);
+  byId("models-list").addEventListener("click", function (event) {
+    var item = event.target.closest("[data-model]");
+    if (!item) return;
+    var modelName = item.getAttribute("data-model");
+    byId("ollama-command").value = "run " + modelName;
+    byId("ollama-run-button").click();
+  });
   byId("ollama-run-button").addEventListener("click", async function () {
     var command = byId("ollama-command").value.trim();
     if (!command) {
@@ -453,7 +463,8 @@
   });
 
   initializeTheme();
-  if (initializeTokenSetup()) {
+  var hasToken = initializeTokenSetup();
+  if (hasToken) {
     refreshAll();
     window.setInterval(refreshAll, 5000);
   }

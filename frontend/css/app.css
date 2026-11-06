@@ -181,6 +181,7 @@ html[data-bs-theme="light"] .model-name {
   padding: .75rem 0;
 }
 .card-title { font-weight: 700; }
+.hidden { display: none !important; }
 @media (max-width: 767px) {
   .navbar-brand span:last-child { font-size: .95rem; }
   .status-chip { display: none; }
